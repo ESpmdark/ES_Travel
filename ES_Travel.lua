@@ -186,24 +186,6 @@ local function generateButtons(tbl)
 	ES_Travel_Dungeon:SetSize(((width+padding)*mfMax)+padding,yPos*-1)
 end
 
-local function checkToyBox(id)
-	local num = tonumber(C_ToyBox.GetNumToys())
-	if not ((num or 0) > 0) then
-		return false
-	end
-	local rt = false
-	for i = 1, num do
-		if id == C_ToyBox.GetToyFromIndex(i) then
-			local _, tNm, icon = C_ToyBox.GetToyInfo(id)
-			if tNm then
-				rt = {tNm = tNm, icon = icon}
-			end
-			break
-		end
-	end
-	return rt
-end
-
 local function customOverride()
 	local toyid = false
 	if ESTravel_DB[fullname] and ESTravel_DB[fullname].id then
@@ -233,7 +215,7 @@ function ES_Travel_DelayedInit()
 	for i=1,#h do
 		if not tblInit["addH"..i] then
 			local custID = customOverride()
-			if h[i].type == "spell" and IsPlayerSpell(h[i].id) then
+			if h[i].type == "spell" and C_SpellBook.IsSpellKnown(h[i].id) then
 				local spInfo = C_Spell.GetSpellInfo(h[i].id)
 				local spNm, icon = spInfo.name, spInfo.iconID
 				tblInit["tTBL"][1][idx] = {
@@ -373,9 +355,9 @@ function ES_Travel_DelayedInit()
 		idx = 1
 		local p = addon.ports
 		for i=1,#p do
-			if p[i].tele and IsPlayerSpell(p[i].tele) then
-				local right = false
-				if p[i].port and IsPlayerSpell(p[i].port) then
+			if p[i].tele and C_SpellBook.IsSpellKnown(p[i].tele) then
+				local right
+				if p[i].port and C_SpellBook.IsSpellKnown(p[i].port) then
 					local spNm2 = C_Spell.GetSpellInfo(p[i].port).name
 					right = spNm2
 				end
@@ -384,7 +366,7 @@ function ES_Travel_DelayedInit()
 				tblInit["tTBL"][3][idx] = {
 					name = p[i].name,
 					left = spNm,
-					right = right,
+					right = right or false,
 					type = "spell",
 					id = p[i].id,
 					icon = icon
@@ -398,7 +380,7 @@ function ES_Travel_DelayedInit()
 		idx = 1
 		tblInit["tTBL"][4][i] = {}
 		for k,v in pairs(d[i]) do
-			if IsPlayerSpell(k) then
+			if C_SpellBook.IsSpellKnown(k) then
 				local spInfo = C_Spell.GetSpellInfo(k)
 				local spNm, icon = spInfo.name, spInfo.iconID
 				tblInit["tTBL"][4][i][idx] = {
@@ -677,8 +659,8 @@ end
 
 SLASH_ESTRAVEL1 = "/es_t";
 SlashCmdList["ESTRAVEL"] = function(msg)
-	local s1, s2 = strsplit(" ", msg, 2)
-	s2 = tonumber(s2)
+	local s1, sT = strsplit(" ", msg, 2)
+	local s2 = tonumber(sT)
 	if s1 == "scale" then
 		if s2 and (s2 >= 0.5) and (s2 <= 2) then
 			ES_Travel_SetScale(s2)
