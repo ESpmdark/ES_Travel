@@ -202,7 +202,7 @@ end
 local tblInit = {}
 function ES_Travel_DelayedInit()
 	if generated then return end
-
+	
 	if not tblInit["loadstart"] then
 		tblInit["loadstart"] = GetTime()
 	end
@@ -234,7 +234,7 @@ function ES_Travel_DelayedInit()
 					C_Timer.After(0.1, ES_Travel_DelayedInit)
 					return
 				elseif usable then
-					local _, tNm, icon = C_ToyBox.GetToyInfo(custID)
+					local _, _, icon = C_ToyBox.GetToyInfo(custID)
 					tblInit["tTBL"][1][idx] = {
 						name = "Hearthstone",
 						left = custID,
@@ -260,7 +260,7 @@ function ES_Travel_DelayedInit()
 						end
 					end
 					if valid then
-						local _, tNm, icon = C_ToyBox.GetToyInfo(h[i].id)
+						local _, _, icon = C_ToyBox.GetToyInfo(h[i].id)
 						tblInit["tTBL"][1][idx] = {
 							name = h[i].name,
 							left = h[i].id,
@@ -334,7 +334,7 @@ function ES_Travel_DelayedInit()
 					C_Timer.After(0.1, ES_Travel_DelayedInit)
 					return
 				elseif usable then
-					local _, tNm, icon = C_ToyBox.GetToyInfo(w[i].id)
+					local _, _, icon = C_ToyBox.GetToyInfo(w[i].id)
 					tblInit["tTBL"][2][idx] = {
 						name = w[i].name,
 						left = w[i].id,
@@ -667,15 +667,7 @@ SlashCmdList["ESTRAVEL"] = function(msg)
 		else
 			print('|cff00b4ffES_Travel: |rInvalid numbervalue. Accepting 0.5 up to 2')
 		end
-	elseif s1 == "missing" then
-		local str = ""
-		for k,v in ipairs(addon.missingSorted) do
-			str = str .. '\n' .. v
-		end
-		if str ~= "" then
-			print('|cff00b4ffES_Travel: |r|cfffff400Missing HS toys:|r' .. str)
-		end
 	else
-		print('|cff00b4ffES_Travel: |rValid commands: \n|cfffff400/es_t scale 1 |r(to set frame size for your account [0.5 - 2])\n|cfffff400/es_t missing |r(to get a list of HS toys you have yet to collect)')
+		print('|cff00b4ffES_Travel: |rValid commands: \n|cfffff400/es_t scale 1 |r(to set frame size for your account [0.5 - 2])')
 	end
 end

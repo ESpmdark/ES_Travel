@@ -1,6 +1,6 @@
 local _, addon = ...
 local fact, _ = UnitFactionGroup("player")
-local _, _, classId = UnitClass("player")
+--local _, _, classId = UnitClass("player")
 
 local factionlookup = {
 	["Alliance"] = {
@@ -156,14 +156,12 @@ addon.quest = {
 }
 
 addon.checkQuest = function(questId)
-	local valid = false
 	for _,id in ipairs(addon.quest[questId]) do
 		if C_QuestLog.IsQuestFlaggedCompleted(id) then
-			valid = true
-			break
+			return true
 		end
 	end
-	return valid
+	return false
 end
 
 addon.general = {
@@ -241,11 +239,6 @@ addon.spellLookup = { -- The spell cast by the items
 	[18986] = 23453, -- Gadgetzan
 }
 
-addon.knownToys = {}
-addon.knownReversed = {}
-addon.missing = {}
-addon.missingSorted = {}
-
 local list = {
 	[166747] = "Brewfest Reveler's Hearthstone",
 	[190237] = "Broker Translocation Matrix",
@@ -279,11 +272,13 @@ local list = {
 	[142542] = "Tome of Town Portal",
 	[183716] = "Venthyr Hearthstone",
 }
+
+addon.knownToys = {}
+addon.knownReversed = {}
+
 addon.initToys = function()
 	table.wipe(addon.knownToys)
 	table.wipe(addon.knownReversed)
-	table.wipe(addon.missing)
-	table.wipe(addon.missingSorted)
 	for k,v in pairs(list) do
 		local usable = C_ToyBox.IsToyUsable(k)
 		if usable == nil or usable == "" then
@@ -291,23 +286,14 @@ addon.initToys = function()
 			return
 		elseif usable and PlayerHasToy(k) then
 			addon.knownToys[k] = v
-		else
-			addon.missing[k] = v
 		end
 	end
 	local sorted = {}
-	local missing = {}
 	for k,v in pairs(addon.knownToys) do
 		addon.knownReversed[v] = k
 		table.insert(sorted, v)
 	end
-	for k,v in pairs(addon.missing) do
-		addon.missingSorted[v] = k
-		table.insert(missing, v)
-	end
 	table.sort(sorted)
-	table.sort(missing)
 	addon.knownToys = sorted
-	addon.missingSorted = missing
 end
 
