@@ -439,19 +439,6 @@ function ES_Travel_DelayedInit()
 	wipe(tblInit)
 end
 
-local function getBagSlot(id)
-	for bag = 0, NUM_BAG_SLOTS do
-		local bSlots = C_Container.GetContainerNumSlots(bag)
-		for slot = 1, bSlots do
-			local item =  C_Container.GetContainerItemInfo(bag, slot)
-			if item and item.itemID == id then
-				return bag,slot
-			end
-		end
-	end
-	return false
-end
-
 local function toggleShow(arg,dungeon)
 	if arg == "show" then
 		if not (UnitAffectingCombat("player") or InCombatLockdown()) then
