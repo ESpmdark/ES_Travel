@@ -1,5 +1,5 @@
 package-as: ES_Travel
-enable-toc-creation: yes
+enable-toc-creation: no
 
 ignore:
     - .github
