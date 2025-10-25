@@ -1,8 +1,8 @@
-## Interface: 110200
+## Interface: 110205
 ## Title: ES_Travel
 ## Author: Elêssar 
 ## Notes: All your travel needs gathered neatly
-## Version: 1.3.4
+## Version: 1.3.6
 ## IconTexture: Interface/AddOns/ES_Travel/addon_icon
 ## OptionalDeps: Ace3
 ## SavedVariables: ESTravel_DB
