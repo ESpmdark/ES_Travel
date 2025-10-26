@@ -238,6 +238,17 @@ function ES_Travel:Handler2(event, ...)
 	end
 end
 
+function ES_Travel:Handler3(event, ...)
+	local prof1, prof2, _ = GetProfessions()
+	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
+	if isEngineer then
+		addon.forceCheck:Show()
+	else
+		addon.loadEntries()
+	end
+	ES_Travel:UnregisterEvent("PLAYER_ENTERING_WORLD")
+end
+
 ES_Travel_Frame:SetScript("OnShow", function()
 	for i=1,count do
 		local f = _G["ES_Travel_Frame.button"..i]
@@ -414,13 +425,7 @@ function ES_Travel:OnInitialize()
 			end
 		end
 	end
-	local prof1, prof2, _ = GetProfessions()
-	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
-	if isEngineer then
-		addon.forceCheck:Show()
-	else
-		addon.loadEntries()
-	end
+	ES_Travel:RegisterEvent("PLAYER_ENTERING_WORLD", "Handler3")
 	ES_Travel_SetScale()
 end
 
