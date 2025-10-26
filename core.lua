@@ -27,18 +27,10 @@ ES_Travel_Dungeon.ret:GetNormalTexture():SetTexCoord(0.262124, 0.3, 0.295, 0.334
 ES_Travel_Dungeon.ret:SetPushedTexture(1121272)
 ES_Travel_Dungeon.ret:GetPushedTexture():SetTexCoord(0.262124, 0.3, 0.295, 0.334141)
 
---
-local GetItemInfoInstant = C_Item.GetItemInfoInstant
---
-
 local count = 1
 local count2 = 1
-local generated = false
-local playerfeedback = false
 local width,height = 80, 80
 local padding = 16
-local validIDs = {}
-local fullname
 
 local function createNewButton(txt,left,type,right,icon,xPos,yPos,dungeon)
 	local path = "Interface\\EncounterJournal\\UI-EncounterJournalTextures"
@@ -83,7 +75,7 @@ local function createNewButton(txt,left,type,right,icon,xPos,yPos,dungeon)
 	return btn
 end
 
-local function generateButtons(tbl)
+addon.generateButtons = function(tbl)
 	local titleSize = 26
 	local xPos = 0
 	local yPos = (-1 * padding) - titleSize
@@ -186,241 +178,6 @@ local function generateButtons(tbl)
 	ES_Travel_Dungeon:SetSize(((width+padding)*mfMax)+padding,yPos*-1)
 end
 
-local function customOverride()
-	local toyid = false
-	if ESTravel_DB[fullname] and ESTravel_DB[fullname].id then
-		toyid = ESTravel_DB[fullname].id
-	elseif ESTravel_DB["global"] and ESTravel_DB["global"].id then
-		toyid = ESTravel_DB["global"].id
-	end
-	if toyid then
-		validIDs[addon.spellLookup[toyid]] = true
-	end
-	return toyid
-end
-
-local tblInit = {}
-function ES_Travel_DelayedInit()
-	if generated then return end
-	
-	if not tblInit["loadstart"] then
-		tblInit["loadstart"] = GetTime()
-	end
-	if not tblInit["tTBL"] then
-		tblInit["tTBL"] = {[1]={},[2]={},[3]={},[4]={}}
-	end
-	C_ToyBox.ForceToyRefilter()
-	local h = addon.general
-	local idx = 1
-	for i=1,#h do
-		if not tblInit["addH"..i] then
-			local custID = customOverride()
-			if h[i].type == "spell" and C_SpellBook.IsSpellKnown(h[i].id) then
-				local spInfo = C_Spell.GetSpellInfo(h[i].id)
-				local spNm, icon = spInfo.name, spInfo.iconID
-				tblInit["tTBL"][1][idx] = {
-					name = h[i].name,
-					left = spNm,
-					right = false,
-					type = "spell",
-					id = h[i].id,
-					icon = icon
-				}
-				tblInit["addH"..i] = true
-				idx = idx + 1
-			elseif h[i].type == "override" and custID and PlayerHasToy(custID) then
-				local usable = C_ToyBox.IsToyUsable(custID)
-				if usable == nil or usable == "" then
-					C_Timer.After(0.1, ES_Travel_DelayedInit)
-					return
-				elseif usable then
-					local _, _, icon = C_ToyBox.GetToyInfo(custID)
-					tblInit["tTBL"][1][idx] = {
-						name = "Hearthstone",
-						left = custID,
-						right = false,
-						type = "toy",
-						id = custID,
-						icon = icon
-					}
-					idx = idx + 1
-					tblInit["addH"..i] = true
-					tblInit["override"] = true
-				end
-			elseif h[i].type == "toy" and PlayerHasToy(h[i].id) then
-				local usable = C_ToyBox.IsToyUsable(h[i].id)
-				if usable == nil or usable == "" then
-					C_Timer.After(0.1, ES_Travel_DelayedInit)
-					return
-				elseif usable then
-					local valid = true
-					if h[i].quest then
-						if not addon.checkQuest(h[i].id) then
-							valid = false
-						end
-					end
-					if valid then
-						local _, _, icon = C_ToyBox.GetToyInfo(h[i].id)
-						tblInit["tTBL"][1][idx] = {
-							name = h[i].name,
-							left = h[i].id,
-							right = false,
-							type = "toy",
-							id = h[i].id,
-							icon = icon
-						}
-						idx = idx + 1
-						tblInit["addH"..i] = true
-					end
-				end
-			elseif not (tblInit["override"] and h[i].id == 6948) then
-				for bag = 0, NUM_BAG_SLOTS do
-					local bSlots = C_Container.GetContainerNumSlots(bag)
-					if not bSlots then break end
-					for slot = 1, bSlots do
-						local item =  C_Container.GetContainerItemInfo(bag, slot)
-						if item and item.itemID == h[i].id then
-							local icon = select(5,GetItemInfoInstant(h[i].id))
-							tblInit["tTBL"][1][idx] = {
-								name = h[i].short or h[i].name,
-								left = h[i].name,
-								right = false,
-								type = "item",
-								id = h[i].id,
-								icon = icon
-							}
-							idx = idx + 1
-							tblInit["addH"..i] = true
-						end
-					end
-				end
-			end
-		else
-			idx = idx + 1
-		end
-	end
-	local w = addon.wormholes
-	idx = 1
-	for i=1,#w do
-		if not tblInit["addW"..i] then
-			if w[i].type then -- Reaves
-				local bot = {
-					[132523] = "Reaves Battery",
-					[144341] = "Rechargeable Reaves Battery"
-				}
-				for bag = 0, NUM_BAG_SLOTS do
-					local bSlots = C_Container.GetContainerNumSlots(bag)
-					if not bSlots then break end
-					for slot = 1, bSlots do
-						local item =  C_Container.GetContainerItemInfo(bag, slot)
-						if item and item.itemID and bot[item.itemID] and C_QuestLog.IsQuestFlaggedCompleted(40738) then
-							local icon = select(5,GetItemInfoInstant(item.itemID))
-							tblInit["tTBL"][2][idx] = {
-								name = "Legion",
-								left = bot[item.itemID],
-								right = false,
-								type = "item",
-								id = item.itemID,
-								icon = icon
-							}
-							idx = idx + 1
-							tblInit["addW"..i] = true
-						end
-					end
-				end
-			elseif w[i].id and PlayerHasToy(w[i].id) then
-				local usable = C_ToyBox.IsToyUsable(w[i].id)
-				if usable == nil or usable == "" then
-					C_Timer.After(0.1, ES_Travel_DelayedInit)
-					return
-				elseif usable then
-					local _, _, icon = C_ToyBox.GetToyInfo(w[i].id)
-					tblInit["tTBL"][2][idx] = {
-						name = w[i].name,
-						left = w[i].id,
-						right = false,
-						type = "toy",
-						id = w[i].id,
-						icon = icon
-					}
-					idx = idx + 1
-					tblInit["addW"..i] = true
-				end
-			end
-		else
-			idx = idx + 1
-		end
-	end
-	if (select(3,UnitClass("player")) == 8) then
-		idx = 1
-		local p = addon.ports
-		for i=1,#p do
-			if p[i].tele and C_SpellBook.IsSpellKnown(p[i].tele) then
-				local right
-				if p[i].port and C_SpellBook.IsSpellKnown(p[i].port) then
-					local spNm2 = C_Spell.GetSpellInfo(p[i].port).name
-					right = spNm2
-				end
-				local spInfo = C_Spell.GetSpellInfo(p[i].tele)
-				local spNm, icon = spInfo.name, spInfo.iconID
-				tblInit["tTBL"][3][idx] = {
-					name = p[i].name,
-					left = spNm,
-					right = right or false,
-					type = "spell",
-					id = p[i].id,
-					icon = icon
-				}
-				idx = idx + 1
-			end
-		end
-	end
-	local d = addon.dungeon
-	for i=1,#d do
-		idx = 1
-		tblInit["tTBL"][4][i] = {}
-		for k,v in pairs(d[i]) do
-			if C_SpellBook.IsSpellKnown(k) then
-				local spInfo = C_Spell.GetSpellInfo(k)
-				local spNm, icon = spInfo.name, spInfo.iconID
-				tblInit["tTBL"][4][i][idx] = {
-					name = v,
-					left = spNm,
-					right = false,
-					type = "spell",
-					id = k,
-					icon = icon
-				}
-				idx = idx + 1
-			end
-		end
-	end
-	generateButtons(tblInit["tTBL"])
-	if playerfeedback then
-		playerfeedback = false
-		PlaySound(15273, "Master", true)
-	end
-	local strTime = ""
-	local seconds = GetTime() - tblInit["loadstart"]
-	if seconds > 0 then
-		local hours = math.floor(seconds/3600)
-		if hours > 0 then strTime = strTime .. hours .. ' hr, ' end
-		local mins = math.floor(seconds/60 - (hours*60))
-		if mins > 0 then strTime = strTime .. mins .. ' min, ' end
-		local secs = string.format("%.1f", seconds - hours*3600 - mins *60)
-		strTime = '(' .. strTime .. secs .. ' sec)'
-	else
-		strTime = '(0 sec)'
-	end
-	print('|cff00b4ffES_Travel: |r|cff00ff00Load completed|r |cffb2b2b2'..strTime..'|r')
-	addon.initToys()
-	generated = true
-	ES_Travel:RegisterEvent("UNIT_SPELLCAST_START", "Handler1")
-	ES_Travel:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "Handler1")
-	ES_Travel:RegisterEvent("PLAYER_REGEN_DISABLED", "Handler2")
-	wipe(tblInit)
-end
-
 local function toggleShow(arg,dungeon)
 	if arg == "show" then
 		if not (UnitAffectingCombat("player") or InCombatLockdown()) then
@@ -448,9 +205,8 @@ ES_Travel_Dungeon.ret:SetScript("OnClick", function()
 end)
 
 function ES_Travel_Toggle()
-	if not generated then
+	if not addon.generated then
 		print('|cff00b4ffES_Travel: |r|cffff0000Issue fetching data from API. Load pending!')
-		playerfeedback = true
 		return
 	end
 	if ES_Travel_Frame:IsVisible() then
@@ -463,9 +219,9 @@ end
 function ES_Travel:Handler1(event, unit, cast, spellID)
 	if not (ES_Travel_Frame:IsVisible() or ES_Travel_Dungeon:IsVisible()) then return end
 	if not unit or not (unit == "player") then return end
-	if not spellID or not validIDs[spellID] then return end	
+	if not spellID or not addon.validIDs[spellID] then return end	
 	toggleShow("hide")
-	if spellID == 163830 then
+	if spellID == 163830 then -- Show description for Draenor engineering toy options
 		print('|cff00b4ff### Wormhole Centrifuge ###|r')
 		print("A jagged landscape " .. '|cffffc700(Spires of Arak)|r')
 		print("A reddush-orange forest " .. '|cffffc700(Talador)|r')
@@ -568,13 +324,13 @@ local opDD2 = CreateFrame("DropdownButton", "ES_Travel_CharacterOverride", addon
 opDD2:SetPoint("TOPLEFT", 15, -80)
 opDD2:SetWidth(300)
 opDD2:SetScript("OnShow", function(self)
-	self:SetDefaultText(ESTravel_DB[fullname] and ESTravel_DB[fullname].name or "Disabled")
+	self:SetDefaultText(ESTravel_DB[addon.fullname] and ESTravel_DB[addon.fullname].name or "Disabled")
 end)
 opDD2:SetupMenu(function(dropdown, rootDescription)
 	local string = '|cff00b4ffES_Travel: |rReload interface to update the travel frame.'
     rootDescription:CreateButton("Disable", function()
 		dropdown:SetDefaultText("Disabled")
-		ESTravel_DB[fullname] = false
+		ESTravel_DB[addon.fullname] = false
 		print(string)
 	end)
 	if addon.knownToys then
@@ -582,7 +338,7 @@ opDD2:SetupMenu(function(dropdown, rootDescription)
 			local id = addon.knownReversed[name]
 			rootDescription:CreateButton(name, function()
 				dropdown:SetDefaultText(name)
-				ESTravel_DB[fullname] = {
+				ESTravel_DB[addon.fullname] = {
 					["id"] = id,
 					["name"] = name
 					};
@@ -610,50 +366,61 @@ local function ES_Travel_SetScale(scale)
 	ESTravel_DB["scale"] = scale
 end
 
+ addon.registerEvents = function()
+	ES_Travel:RegisterEvent("UNIT_SPELLCAST_START", "Handler1")
+	ES_Travel:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED", "Handler1")
+	ES_Travel:RegisterEvent("PLAYER_REGEN_DISABLED", "Handler2")
+end
+
 function ES_Travel:OnInitialize()
-	fullname = UnitName("player") .. '-' .. GetRealmName()
+	addon.fullname = UnitName("player") .. '-' .. GetRealmName()
 	ESTravel_DB = ESTravel_DB or {
 		["scale"] = 1,
 		["global"] = false,
-		[fullname] = false
+		[addon.fullname] = false
 	}
+	addon.validIDs = {}
 	for i=1,#addon.general do
 		local id = addon.general[i].id
 		if id then
 			local e = addon.spellLookup[id]
 			if type(e) == "table" then
 				for _,idx in ipairs(e) do
-					validIDs[idx] = true
+					addon.validIDs[idx] = true
 				end
 			else
-				validIDs[e] = true
+				addon.validIDs[e] = true
 			end
 		end
 	end
 	for i=1,#addon.wormholes do
 		local id = addon.wormholes[i].id
 		if id then
-			validIDs[addon.spellLookup[id]] = true
+			addon.validIDs[addon.spellLookup[id]] = true
 		end
 	end
 	for i=1,#addon.ports do
 		if addon.ports[i].port then
-			validIDs[addon.ports[i].port] = true
+			addon.validIDs[addon.ports[i].port] = true
 		end
 		if addon.ports[i].tele then
-			validIDs[addon.ports[i].tele] = true
+			addon.validIDs[addon.ports[i].tele] = true
 		end
 	end
 	for i=1,7 do
 		for k,v in pairs(addon.dungeon[i]) do
 			if k then
-				validIDs[k] = true
+				addon.validIDs[k] = true
 			end
 		end
 	end
-	C_Timer.After(3, function()
-		ES_Travel_DelayedInit()
-	end)
+	local prof1, prof2, _ = GetProfessions()
+	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
+	if isEngineer then
+		addon.forceCheck:Show()
+	else
+		addon.loadEntries()
+	end
 	ES_Travel_SetScale()
 end
 

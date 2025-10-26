@@ -1,6 +1,5 @@
 local _, addon = ...
 local fact, _ = UnitFactionGroup("player")
---local _, _, classId = UnitClass("player")
 
 local factionlookup = {
 	["Alliance"] = {
@@ -43,13 +42,13 @@ addon.ports = { -- Mage Teleports/Portals
 	[23] = {port = 11417, tele = 3567, name = "Orgrimmar"},	
 }
 
-addon.mainTitle = {
+addon.mainTitle = { -- Category titles for main window
 	[1] = "General",
 	[2] = "Engineering",
 	[3] = "Mage",
 }
 
-addon.dungeonTitle = {
+addon.dungeonTitle = { -- Category titles for dungeon window
 	[1] = "Current Season",
 	[2] = "The War Within",
 	[3] = "Dragonflight",
@@ -165,16 +164,15 @@ addon.checkQuest = function(questId)
 end
 
 addon.general = {
-	[1] = {id = false, type = "override", name = "Hearthstone"},
-	[2] = {id = 6948, type = "item", name = "Hearthstone"},
-	[3] = {id = 556, type = "spell", name = "Astral Recall"},
-	[4] = {id = 140192, type = "toy", name = "Dalaran", quest = true},
-	[5] = {id = 110560, type = "toy", name = "Garrison", quest = true},
-	[6] = {id = 243056, type = "toy", name = "Dornogal"},
-	[7] = {id = 193753, type = "spell", name = "Dreamwalk"},
-	[8] = {id = 18960, type = "spell", name = "Moonglade"},
-	[9] = {id = 50977, type = "spell", name = "Death Gate"},
-	[10] = {id = 126892, type = "spell", name = "Zen\nPilgrimage"},
+	[1] = {id = 6948, type = "item", name = "Hearthstone"},
+	[2] = {id = 556, type = "spell", name = "Astral Recall"},
+	[3] = {id = 140192, type = "toy", name = "Dalaran", quest = true},
+	[4] = {id = 110560, type = "toy", name = "Garrison", quest = true},
+	[5] = {id = 243056, type = "toy", name = "Dornogal"},
+	[6] = {id = 193753, type = "spell", name = "Dreamwalk"},
+	[7] = {id = 18960, type = "spell", name = "Moonglade"},
+	[8] = {id = 50977, type = "spell", name = "Death Gate"},
+	[9] = {id = 126892, type = "spell", name = "Zen\nPilgrimage"},
 }
 
 addon.spellLookup = { -- The spell cast by the items
@@ -239,7 +237,7 @@ addon.spellLookup = { -- The spell cast by the items
 	[18986] = 23453, -- Gadgetzan
 }
 
-local list = {
+local list = { -- Toys to check and add for HS override setting
 	[166747] = "Brewfest Reveler's Hearthstone",
 	[190237] = "Broker Translocation Matrix",
 	[246565] = "Cosmic Hearthstone",
