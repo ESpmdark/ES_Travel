@@ -278,11 +278,7 @@ addon.initToys = function()
 	table.wipe(addon.knownToys)
 	table.wipe(addon.knownReversed)
 	for k,v in pairs(list) do
-		local usable = C_ToyBox.IsToyUsable(k)
-		if usable == nil or usable == "" then
-			C_Timer.After(0.1, addon.initToys)
-			return
-		elseif usable and PlayerHasToy(k) then
+		if PlayerHasToy(k) then
 			addon.knownToys[k] = v
 		end
 	end
