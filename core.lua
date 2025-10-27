@@ -239,14 +239,8 @@ function ES_Travel:Handler2(event, ...)
 end
 
 function ES_Travel:Handler3(event, ...)
-	local prof1, prof2, _ = GetProfessions()
-	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
-	if isEngineer then
-		addon.forceCheck:Show()
-	else
-		addon.loadEntries()
-	end
 	ES_Travel:UnregisterEvent("PLAYER_ENTERING_WORLD")
+	addon.loadEntries()
 end
 
 ES_Travel_Frame:SetScript("OnShow", function()
@@ -287,7 +281,6 @@ ES_Travel_Dungeon:SetScript("OnShow", function()
 		end
 	end
 end)
--- /
 
 --## Interface Options ##
 addon.panel.name = "ES_Travel";

@@ -14,14 +14,22 @@ local function customOverride()
 	return toyid
 end
 
-addon.forceCheck = CreateFrame("Frame", nil)
-addon.forceCheck:Hide()
-local wCount, idx = 1, 1
 local tblInit = {[1]={},[2]={},[3]={},[4]={}}
-local function forceCheck_OnUpdate(self,elapsed)
-    local w = addon.wormholes
-    if w[idx] then
-	    if w[idx].type then -- Reaves
+
+local toyCheckButton
+local function isActuallyUsable(toyID)
+    toyCheckButton:SetAttribute("toy", toyID)
+    if C_ToyBox.IsToyUsable(toyID) then
+		return true
+    end
+	return false
+end
+
+local function checkEngineering()
+	local w = addon.wormholes
+	local count = 1
+    for i=1,#w do
+	    if w[i].type then -- Reaves
 		    local bot = {
 			    [132523] = "Reaves Battery",
 			    [144341] = "Rechargeable Reaves Battery"
@@ -33,7 +41,7 @@ local function forceCheck_OnUpdate(self,elapsed)
 	    			local item =  C_Container.GetContainerItemInfo(bag, slot)
 		    		if item and item.itemID and bot[item.itemID] and C_QuestLog.IsQuestFlaggedCompleted(40738) then
 			    		local icon = select(5,GetItemInfoInstant(item.itemID))
-				    	tblInit[2][wCount] = {
+				    	tblInit[2][count] = {
 							name = "Legion",
    							left = bot[item.itemID],
     						right = false,
@@ -41,37 +49,24 @@ local function forceCheck_OnUpdate(self,elapsed)
 		    				id = item.itemID,
 			    			icon = icon
 						}
-                        wCount = wCount + 1
+                        count = count + 1
 	    			end
 		    	end
 			end
-            idx = idx + 1
-   		elseif PlayerHasToy(w[idx].id) then
-    		local usable = C_ToyBox.IsToyUsable(w[idx].id)
-	    	if not (usable == nil or usable == "") then
-			    if usable then
-                    local icon, _ = select(5,GetItemInfoInstant(w[idx].id))
-    		    	tblInit[2][wCount] = {
-	        			name = w[idx].name,
-	    	    		left = w[idx].id,
-    			    	right = false,
-					    type = "toy",
-   				    	id = w[idx].id,
-    		    		icon = icon
-	        		}
-                    wCount = wCount + 1
-                end
-    		    idx = idx + 1
-			end
-        else
-            idx = idx + 1
+   		elseif PlayerHasToy(w[i].id) and isActuallyUsable(w[i].id) then
+			local icon, _ = select(5,GetItemInfoInstant(w[i].id))
+   	    	tblInit[2][count] = {
+       			name = w[i].name,
+	    		left = w[i].id,
+		    	right = false,
+			    type = "toy",
+		    	id = w[i].id,
+	    		icon = icon
+       		}
+            count = count + 1
    		end
-    else
-        addon.forceCheck:Hide()
-        addon.loadEntries()
     end
 end
-addon.forceCheck:SetScript("OnUpdate", forceCheck_OnUpdate)
 
 local function checkEntryGeneral()
     local custID = customOverride()
@@ -149,6 +144,14 @@ end
 
 addon.loadEntries = function()
     checkEntryGeneral()
+	local prof1, prof2, _ = GetProfessions()
+	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
+	if isEngineer then
+		toyCheckButton = CreateFrame("Button", "ES_Travel_Secure", UIParent, "SecureActionButtonTemplate")
+		toyCheckButton:SetAttribute("type", "toy")
+		toyCheckButton:Hide()
+		checkEngineering()
+	end
     if (select(3,UnitClass("player")) == 8) then
 		local p = addon.ports
         local count = 1
@@ -194,9 +197,9 @@ addon.loadEntries = function()
 		end
 	end
     addon.generateButtons(tblInit)
-    print('|cff00b4ffES_Travel: |r|cff00ff00Load completed|r')
 	addon.initToys()
     addon.registerEvents()
 	wipe(tblInit)
     addon.generated = true
+    print('|cff00b4ffES_Travel: |r|cff00ff00Load completed|r')
 end
