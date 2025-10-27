@@ -240,7 +240,7 @@ end
 
 function ES_Travel:Handler3(event, ...)
 	ES_Travel:UnregisterEvent("PLAYER_ENTERING_WORLD")
-	addon.loadEntries()
+	addon.loadToys()
 end
 
 ES_Travel_Frame:SetScript("OnShow", function()

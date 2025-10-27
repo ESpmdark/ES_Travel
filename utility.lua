@@ -15,15 +15,7 @@ local function customOverride()
 end
 
 local tblInit = {[1]={},[2]={},[3]={},[4]={}}
-
-local toyCheckButton
-local function isActuallyUsable(toyID)
-    toyCheckButton:SetAttribute("toy", toyID)
-    if C_ToyBox.IsToyUsable(toyID) then
-		return true
-    end
-	return false
-end
+local canUseToy = {}
 
 local function checkEngineering()
 	local w = addon.wormholes
@@ -53,20 +45,43 @@ local function checkEngineering()
 	    			end
 		    	end
 			end
-   		elseif PlayerHasToy(w[i].id) and isActuallyUsable(w[i].id) then
+   		elseif canUseToy[w[i].id] then
 			local icon, _ = select(5,GetItemInfoInstant(w[i].id))
-   	    	tblInit[2][count] = {
-       			name = w[i].name,
-	    		left = w[i].id,
-		    	right = false,
-			    type = "toy",
-		    	id = w[i].id,
-	    		icon = icon
-       		}
-            count = count + 1
+			tblInit[2][count] = {
+				name = w[i].name,
+				left = w[i].id,
+				right = false,
+				type = "toy",
+				id = w[i].id,
+				icon = icon
+			}
+			count = count + 1
    		end
     end
+	addon.loadEntries()
 end
+
+local forceCheck = CreateFrame("Frame", "ES_Travel_Forced", UIParent)
+forceCheck:Hide()
+local engiToys = 0
+local function forceCheck_UpdateLoop(self,elapsed) -- Not the best solution, but workaround for C_ToyBox.IsToyUsable = nil
+	if engiToys == 0 then
+		forceCheck:Hide()
+		checkEngineering()
+	else
+		local w = addon.wormholes
+		if not w[engiToys].type and PlayerHasToy(w[engiToys].id) then
+			local usable = C_ToyBox.IsToyUsable(w[engiToys].id)
+			if not ( usable == nil or usable == "") then
+				canUseToy[w[engiToys].id] = usable
+				engiToys = engiToys - 1
+			end
+		else
+			engiToys = engiToys - 1
+		end
+	end
+end
+forceCheck:SetScript("OnUpdate", forceCheck_UpdateLoop)
 
 local function checkEntryGeneral()
     local custID = customOverride()
@@ -144,14 +159,6 @@ end
 
 addon.loadEntries = function()
     checkEntryGeneral()
-	local prof1, prof2, _ = GetProfessions()
-	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
-	if isEngineer then
-		toyCheckButton = CreateFrame("Button", "ES_Travel_Secure", UIParent, "SecureActionButtonTemplate")
-		toyCheckButton:SetAttribute("type", "toy")
-		toyCheckButton:Hide()
-		checkEngineering()
-	end
     if (select(3,UnitClass("player")) == 8) then
 		local p = addon.ports
         local count = 1
@@ -196,10 +203,21 @@ addon.loadEntries = function()
 			end
 		end
 	end
-    addon.generateButtons(tblInit)
+    addon.generateButtons(tblInit)	
 	addon.initToys()
     addon.registerEvents()
 	wipe(tblInit)
     addon.generated = true
     print('|cff00b4ffES_Travel: |r|cff00ff00Load completed|r')
+end
+
+addon.loadToys = function()
+	local prof1, prof2, _ = GetProfessions()
+	local isEngineer = (prof1 and select(7,GetProfessionInfo(prof1)) == 202) or (prof2 and select(7,GetProfessionInfo(prof2)) == 202) or false
+	if isEngineer then
+		engiToys = #addon.wormholes
+		forceCheck:Show()
+	else
+		addon.loadEntries()
+	end
 end
