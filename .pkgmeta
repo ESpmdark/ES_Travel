@@ -1,6 +1,8 @@
 package-as: ES_Travel
 
-ignore:
-    - .github
-    - .gitignore
-    - README.md
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+move-folders:
+  ES_Travel/ES_Travel: ES_Travel
