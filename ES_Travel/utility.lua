@@ -203,7 +203,7 @@ addon.loadEntries = function()
 			end
 		end
 	end
-    addon.generateButtons(tblInit)	
+    addon.generateButtons(tblInit)
 	addon.initToys()
     addon.registerEvents()
 	wipe(tblInit)

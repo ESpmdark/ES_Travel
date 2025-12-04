@@ -110,6 +110,9 @@ addon.generateButtons = function(tbl)
 				for l=1,#bTBL[y] do
 					local b = bTBL[y][l]
 					if b then
+						if b.id == 126892 then -- Zen Pilgrimage has a knownspell bug when using spellname. Need to use spellID to bypass this.
+							b.left = b.id
+						end
 						local btn = createNewButton(b.name,b.left,b.type,b.right,b.icon,xPos,yPos)
 						btn.type = b.type
 						btn.id = b.id
@@ -123,7 +126,7 @@ addon.generateButtons = function(tbl)
 	end
 	mfMax = (mfMax == 0) and 0 or (mfMax >= 2) and mfMax or 2 -- Ensure the frame is wide enough to fit text if less than 2 wide
 	ES_Travel_Frame:SetSize(((width+padding)*mfMax)+padding,yPos*-1)
-	
+
 	xPos = 0
 	yPos = (-1 * padding) - titleSize
 	mfMax = 0
